@@ -8,8 +8,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ResumeAI — AI Resume Optimization | 简历优化平台",
-  description: "AI-powered resume analysis platform for international students. 为国际学生打造的 AI 简历优化工具。",
+  title: "ResumeAI — AI 简历优化平台",
+  description:
+    "专为国际学生设计的 AI 简历分析与优化工具，精准匹配 ATS 关键词，提升面试通过率。",
   icons: { icon: "/favicon.ico" },
 };
 
@@ -19,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="h-full antialiased scroll-smooth">
-      <body className={`${inter.variable} font-sans min-h-full flex flex-col`}>
+    <html lang="zh-CN" className="scroll-smooth">
+      <body className={`${inter.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>
