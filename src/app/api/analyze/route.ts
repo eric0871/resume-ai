@@ -28,7 +28,11 @@ export async function POST(req: NextRequest) {
       resumeText: text,
     });
   } catch (error) {
-    console.error("Analysis error:", error);
+    console.error("Analysis error:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      hasApiKey: !!process.env.ANTHROPIC_API_KEY,
+    });
     const message = error instanceof Error ? error.message : "分析过程中出错，请重试";
     return NextResponse.json({ error: message }, { status: 500 });
   }

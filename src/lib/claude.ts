@@ -54,49 +54,10 @@ function extractJSON<T>(text: string): T {
   throw new Error('No valid JSON found in response');
 }
 
-// ─── MOCK DATA (fallback when no API key) ─────────────────────────────
-
-const MOCK_ANALYSIS: ResumeAnalysis = {
-  overallScore: 72,
-  sections: {
-    format: {
-      score: 78,
-      feedback: ['简历长度合适，控制在一页内', '使用了清晰的section分隔', '字体大小不够统一，建议正文统一用10-11pt'],
-      suggestions: ['添加LinkedIn链接', '将技能部分移到更显眼的位置', '使用更专业的模板格式']
-    },
-    content: {
-      score: 65,
-      feedback: ['缺少量化的工作成果', '技术栈描述不够具体', 'Summary部分过于笼统'],
-      suggestions: ['每条经验都加入数字指标', '按STAR法则重写工作经验', '用更有力的Action Verbs开头']
-    },
-    keywords: {
-      found: ['Python', 'React', 'AWS', 'Machine Learning', 'SQL', 'Docker', 'Git'],
-      missing: ['CI/CD', 'Agile', 'REST API', 'TypeScript', 'Kubernetes', 'Data Pipeline'],
-      industryRelevance: 68
-    },
-    experience: {
-      score: 70,
-      feedback: ['实习经历描述偏向任务列表而非成就', '缺少业务影响的量化描述'],
-      impactStatements: [
-        { original: '负责开发公司内部管理系统', improved: 'Led development of internal management system serving 200+ employees, reducing manual processes by 40%' },
-        { original: '参与机器学习模型训练', improved: 'Trained and deployed ML classification model achieving 94% accuracy, processing 10K+ daily predictions in production' },
-        { original: '使用React开发前端页面', improved: 'Built 15+ responsive React components with TypeScript, improving page load time by 35% through code splitting' },
-      ]
-    },
-    education: {
-      score: 82,
-      feedback: ['GPA展示合理', '相关课程列表有帮助', '建议添加相关的学术项目']
-    }
-  },
-  summary: '简历整体结构合理，但在内容深度和关键词覆盖方面有提升空间。最大的改进点是将工作经验从"做了什么"改为"产生了什么影响"。建议重点优化量化指标和技术关键词覆盖率，以提升ATS通过率。',
-  topImprovements: [
-    '将每条工作经验改写为"Action Verb + 量化结果"格式，突出业务影响',
-    '补充缺失的关键技术词：CI/CD, Agile, REST API, TypeScript，提升ATS匹配度',
-    '在Summary中突出你的独特价值主张和目标职位，展示H1B候选人竞争力'
-  ],
-  targetRoles: ['Software Engineer', 'Full Stack Developer', 'Data Engineer', 'ML Engineer'],
-  atsCompatibility: 71
-};
+// ─── NO MORE MOCK DATA ───────────────────────────────────────────────
+// Mock data has been removed. All analysis must come from the real Claude API.
+// If the API key is missing or the call fails, we throw an error so the user
+// sees a clear failure message instead of fake results.
 
 // ─── RESUME ANALYSIS ──────────────────────────────────────────────────
 
@@ -116,8 +77,8 @@ const ANALYSIS_SYSTEM_PROMPT = `你是一位专业的简历分析专家，专注
  */
 export async function analyzeResume(resumeText: string): Promise<ResumeAnalysis> {
   if (!ANTHROPIC_API_KEY) {
-    console.warn('ANTHROPIC_API_KEY not configured. Using mock analysis.');
-    return MOCK_ANALYSIS;
+    console.error('ANTHROPIC_API_KEY is not set in environment variables');
+    throw new Error('API调用失败：服务器未配置API密钥，请联系管理员');
   }
 
   const userPrompt = `请分析以下简历，并严格按照JSON格式返回分析结果。
@@ -172,8 +133,11 @@ ${resumeText}
     const responseText = await callClaude(ANALYSIS_SYSTEM_PROMPT, userPrompt, 4096);
     return extractJSON<ResumeAnalysis>(responseText);
   } catch (error) {
-    console.error('Error analyzing resume:', error);
-    return MOCK_ANALYSIS;
+    console.error('Error analyzing resume:', error instanceof Error ? error.message : error);
+    if (error instanceof Error && error.message.startsWith('API调用失败')) {
+      throw error;
+    }
+    throw new Error('API调用失败：简历分析请求出错，请稍后重试');
   }
 }
 
