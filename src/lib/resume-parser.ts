@@ -1,10 +1,14 @@
 /**
  * Extracts text content from a PDF resume
+ *
+ * Uses the direct import path for pdf-parse to avoid the index.js wrapper
+ * which tries to load a test PDF via fs.readFileSync at require time —
+ * this breaks on Vercel's serverless runtime.
  */
 export async function extractTextFromPDF(pdfBuffer: Buffer): Promise<string> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require("pdf-parse");
+    const pdfParse = require("pdf-parse/lib/pdf-parse.js");
     const pdf = await pdfParse(pdfBuffer);
     return pdf.text.trim();
   } catch (error) {
